@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">ArogyaDrishti</string>
+    <string name="app_version">v1.2 · Offline</string>
+
+    <!-- Modality labels -->
+    <string name="modality_face">Face</string>
+    <string name="modality_eye">Eye</string>
+    <string name="modality_tongue">Tongue</string>
+    <string name="modality_skin">Skin</string>
+    <string name="modality_nail">Nail</string>
+    <string name="modality_palm">Palm</string>
+
+    <!-- Risk labels -->
+    <string name="risk_low">Low Risk</string>
+    <string name="risk_monitor">Monitor</string>
+    <string name="risk_high">High Risk</string>
+
+    <!-- Array resources referenced in spinners -->
+    <string-array name="sex_options">
+        <item>Female</item>
+        <item>Male</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="yes_no_options">
+        <item>No</item>
+        <item>Yes</item>
+    </string-array>
+</resources>

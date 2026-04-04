@@ -1,0 +1,22 @@
+# Render deployment configuration
+# Sriya: push this repo to GitHub, then connect it on render.com
+# render.com → New + → Web Service → connect repo → it reads this file automatically
+
+services:
+  - type: web
+    name: arogyadrishti-backend
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      # Add all remaining env vars in the Render dashboard (never in this file):
+      # FIREBASE_PROJECT_ID, FIREBASE_PRIVATE_KEY, FIREBASE_CLIENT_EMAIL
+      # TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN
+      # TWILIO_WHATSAPP_FROM, TWILIO_SMS_FROM
+      # ABDM_BASE_URL, ABDM_CLIENT_ID, ABDM_CLIENT_SECRET
+      # DEFAULT_PHC_WHATSAPP, DEFAULT_PHC_NAME
+    healthCheckPath: /api/health

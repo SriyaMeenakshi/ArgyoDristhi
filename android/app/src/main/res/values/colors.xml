@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand palette (matches prototype screenshots) -->
+    <color name="primary">#1B6B5C</color>
+    <color name="primary_dark">#134F44</color>
+    <color name="primary_light">#2E8B77</color>
+
+    <!-- Backgrounds -->
+    <color name="background">#F4F6F5</color>
+    <color name="surface">#FFFFFF</color>
+
+    <!-- Text -->
+    <color name="text_primary">#1A1A1A</color>
+    <color name="text_secondary">#6B7B74</color>
+    <color name="white">#FFFFFF</color>
+    <color name="white_70">#B3FFFFFF</color>
+
+    <!-- Risk levels -->
+    <color name="risk_red">#D32F2F</color>
+    <color name="risk_yellow">#E65100</color>
+    <color name="risk_green">#2E7D32</color>
+
+    <!-- Status indicator dots -->
+    <color name="dot_online">#4CAF50</color>
+    <color name="dot_offline">#9E9E9E</color>
+</resources>

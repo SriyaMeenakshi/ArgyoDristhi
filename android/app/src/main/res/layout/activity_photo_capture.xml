@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Images processed on-device."
+        android:textSize="11sp"
+        android:textColor="@color/text_secondary"
+        android:padding="12dp" />
+
+    <!--
+        5 modality tiles: Face, Eye, Tongue, Skin, Hand (nail+palm)
+        Guide: "6 tiles in a grid: Face, Eye, Tongue, Skin, Hand (for nails+palm).
+                Analyse button unlocks only when all 5 are done."
+        Layout: row of 3 + row of 2 (centred)
+    -->
+
+    <!-- Row 1: Face · Eye · Tongue -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:layout_marginBottom="4dp">
+
+        <LinearLayout android:id="@+id/tileFace"   style="@style/ModalityTile">
+            <ImageView android:layout_width="28dp" android:layout_height="28dp"
+                android:src="@drawable/ic_face" android:tint="@color/primary" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Face" android:textSize="11sp" android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/tileEye"    style="@style/ModalityTile">
+            <ImageView android:layout_width="28dp" android:layout_height="28dp"
+                android:src="@drawable/ic_eye" android:tint="@color/primary" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Eye" android:textSize="11sp" android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/tileTongue" style="@style/ModalityTile">
+            <ImageView android:layout_width="28dp" android:layout_height="28dp"
+                android:src="@drawable/ic_tongue" android:tint="@color/primary" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Tongue" android:textSize="11sp" android:textColor="@color/text_primary" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Row 2: Skin · Hand (nail+palm) — centred with side spacers -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:layout_marginBottom="8dp">
+
+        <!-- Left spacer (half tile width) -->
+        <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="0.5" />
+
+        <LinearLayout android:id="@+id/tileSkin" style="@style/ModalityTile">
+            <ImageView android:layout_width="28dp" android:layout_height="28dp"
+                android:src="@drawable/ic_skin" android:tint="@color/primary" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Skin" android:textSize="11sp" android:textColor="@color/text_primary" />
+        </LinearLayout>
+
+        <!-- Hand tile with "Nail + Palm" subtitle -->
+        <LinearLayout android:id="@+id/tileHand" style="@style/ModalityTile">
+            <ImageView android:layout_width="28dp" android:layout_height="28dp"
+                android:src="@drawable/ic_hand" android:tint="@color/primary" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Hand" android:textSize="11sp" android:textColor="@color/text_primary" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Nail + Palm" android:textSize="9sp" android:textColor="@color/text_secondary" />
+        </LinearLayout>
+
+        <!-- Right spacer -->
+        <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="0.5" />
+    </LinearLayout>
+
+    <!-- Current modality label -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="4dp">
+
+        <TextView
+            android:id="@+id/tvCurrentModality"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Face"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary" />
+    </LinearLayout>
+
+    <!-- Camera live preview -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/cameraPreview"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Guide hint bar -->
+    <TextView
+        android:id="@+id/tvGuideHint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Centre face in oval guide"
+        android:textSize="13sp"
+        android:textColor="@color/white"
+        android:gravity="center"
+        android:background="@color/primary_dark"
+        android:padding="8dp" />
+
+    <!-- Bottom controls -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCapture"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="Capture photo"
+            app:backgroundTint="@color/primary"
+            app:cornerRadius="12dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAnalyse"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:text="Analyse"
+            android:enabled="false"
+            android:alpha="0.4"
+            app:backgroundTint="@color/primary"
+            app:cornerRadius="12dp" />
+    </LinearLayout>
+
+</LinearLayout>

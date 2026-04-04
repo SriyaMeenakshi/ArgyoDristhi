@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- WhatsApp message sent -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="WHATSAPP MESSAGE SENT TO DOCTOR"
+            android:textSize="10sp"
+            android:textColor="@color/text_secondary"
+            android:letterSpacing="0.1"
+            android:layout_marginBottom="6dp" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="2dp"
+            android:layout_marginBottom="4dp">
+            <TextView
+                android:id="@+id/tvWhatsappMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="14dp"
+                android:textSize="13sp"
+                android:textColor="@color/text_primary"
+                android:lineSpacingMultiplier="1.4" />
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:id="@+id/tvWhatsappStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sending…"
+            android:textSize="12sp"
+            android:textColor="@color/risk_green"
+            android:layout_marginBottom="16dp" />
+
+        <!-- SMS message sent -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SMS SENT TO PATIENT"
+            android:textSize="10sp"
+            android:textColor="@color/text_secondary"
+            android:letterSpacing="0.1"
+            android:layout_marginBottom="6dp" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="2dp"
+            android:layout_marginBottom="4dp">
+            <TextView
+                android:id="@+id/tvSmsMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="14dp"
+                android:textSize="13sp"
+                android:textColor="@color/text_primary"
+                android:lineSpacingMultiplier="1.4" />
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:id="@+id/tvSmsStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sending…"
+            android:textSize="12sp"
+            android:textColor="@color/risk_green"
+            android:layout_marginBottom="16dp" />
+
+        <!-- ABDM sync status -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="24dp">
+
+            <ImageView
+                android:id="@+id/ivAbdmIcon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@android:drawable/ic_menu_upload"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:id="@+id/tvAbdmStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Syncing to ABDM…"
+                android:textSize="13sp"
+                android:textColor="@color/text_secondary" />
+        </LinearLayout>
+
+        <!-- Progress indicator while sending -->
+        <ProgressBar
+            android:id="@+id/progressAlerts"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Screen next patient button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnScreenNext"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Screen Next Patient"
+            android:textStyle="bold"
+            app:backgroundTint="@color/primary"
+            app:cornerRadius="12dp" />
+
+    </LinearLayout>
+</ScrollView>

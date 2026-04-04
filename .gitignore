@@ -1,0 +1,65 @@
+# ── Large binary / model files (use Git LFS or store externally) ─────────────
+*.ptl
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.onnx
+*.tflite
+
+# ── Training data & datasets ──────────────────────────────────────────────────
+data/
+utkface/
+datasets/
+
+# ── Training checkpoints (17 GB) ─────────────────────────────────────────────
+checkpoints/
+
+# ── Experiment tracking ───────────────────────────────────────────────────────
+wandb/
+logs/
+runs/
+mlruns/
+*.log
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+.env
+*.env
+
+# ── Node.js backend ───────────────────────────────────────────────────────────
+backend/node_modules/
+backend/.env
+backend/.env.local
+
+# ── Android ───────────────────────────────────────────────────────────────────
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/app/google-services.json
+android/app/src/main/assets/*.ptl
+android/app/src/main/assets/*.pt
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
