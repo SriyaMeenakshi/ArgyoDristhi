@@ -4,6 +4,11 @@ Takes embeddings from all 5 image encoders + tabular encoder.
 Combines them using PyTorch MultiheadAttention.
 Outputs 7 risk scores (0-1) for: hematological, metabolic, renal,
 hepatic, cardiovascular, dermatological, nutritional.
+
+PARTIAL INFERENCE SUPPORT:
+  Missing encoders are replaced with zero vectors and masked out
+  of the attention mechanism. Results include a confidence score
+  based on how many encoders contributed.
 """
 import torch
 import torch.nn as nn
@@ -59,29 +64,85 @@ class FusionModule(nn.Module):
     def forward(self, embeddings: dict):
         """
         embeddings: dict of {encoder_name: tensor(batch, embed_dim)}
-        Returns: dict of {risk_name: tensor(batch,)} with values in [0, 1]
-        """
-        # Project all embeddings to fusion_dim and stack as sequence
-        # Shape: (batch, num_encoders, fusion_dim)
-        tokens = torch.stack([
-            self.projections[name](embeddings[name])
-            for name in self.encoder_names
-        ], dim=1)
+                    Missing encoders are handled gracefully with zero vectors.
 
-        # Cross-modal attention (self-attention across encoder tokens)
-        # need_weights=True forces Python path instead of native C++ (required for ONNX export)
-        attn_out, _ = self.attention(tokens, tokens, tokens, need_weights=True)
+        Returns: dict with keys:
+            - risk scores: {risk_name: tensor(batch,)} with values in [0, 1]
+            - 'active_encoders': list of encoder names that contributed
+            - 'confidence': float 0-1 based on fraction of encoders present
+        """
+        if not embeddings:
+            raise ValueError("At least one encoder embedding must be provided")
+
+        # Determine batch size and device from any available embedding
+        ref = next(iter(embeddings.values()))
+        batch_size = ref.shape[0]
+        device = ref.device
+
+        # Build token sequence — zero vector for missing encoders
+        tokens = []
+        mask = []  # True = ignore this token in attention
+        active_encoders = []
+
+        for name in self.encoder_names:
+            if name in embeddings:
+                projected = self.projections[name](embeddings[name])
+                tokens.append(projected)
+                mask.append(False)   # attend to this token
+                active_encoders.append(name)
+            else:
+                # Zero vector for missing encoder
+                zero = torch.zeros(batch_size, self.fusion_dim, device=device)
+                tokens.append(zero)
+                mask.append(True)    # mask out in attention
+
+        # Stack tokens: (batch, num_encoders, fusion_dim)
+        tokens = torch.stack(tokens, dim=1)
+
+        # Build key_padding_mask: (batch, num_encoders)
+        # True = ignore this position in attention
+        key_padding_mask = torch.tensor(
+            mask, dtype=torch.bool, device=device
+        ).unsqueeze(0).expand(batch_size, -1)
+
+        # If ALL encoders are masked (shouldn't happen), fall back to no mask
+        if all(mask):
+            key_padding_mask = None
+
+        # Cross-modal attention with masking
+        attn_out, _ = self.attention(
+            tokens, tokens, tokens,
+            key_padding_mask=key_padding_mask,
+            need_weights=True   # required for ONNX export
+        )
         fused = self.norm(tokens + self.dropout(attn_out))  # residual
 
-        # Mean pool across encoder dimension → (batch, fusion_dim)
-        fused = fused.mean(dim=1)
-        fused = self.aggregator(fused)
+        # Mean pool only over ACTIVE encoder positions
+        if key_padding_mask is not None:
+            # Zero out masked positions before pooling
+            active_mask = (~key_padding_mask).float().unsqueeze(-1)  # (batch, N, 1)
+            fused = fused * active_mask
+            num_active = active_mask.sum(dim=1)  # (batch, 1)
+            num_active = num_active.clamp(min=1)
+            pooled = fused.sum(dim=1) / num_active  # (batch, fusion_dim)
+        else:
+            pooled = fused.mean(dim=1)
+
+        pooled = self.aggregator(pooled)
+
+        # Confidence: fraction of encoders that contributed
+        confidence = len(active_encoders) / self.num_encoders
 
         # Each head produces a scalar risk score via sigmoid
         risks = {
-            name: torch.sigmoid(head(fused)).squeeze(1)
+            name: torch.sigmoid(head(pooled)).squeeze(1)
             for name, head in self.heads.items()
         }
+
+        # Add metadata
+        risks['active_encoders'] = active_encoders
+        risks['confidence'] = confidence
+
         return risks
 
 
@@ -89,6 +150,8 @@ class ArogyaDrishtiModel(nn.Module):
     """
     Full end-to-end model wrapping all encoders + fusion module.
     Used for training the fusion stage.
+
+    Supports partial inference — pass only the encoders you have.
     """
     def __init__(self, encoders: nn.ModuleDict, fusion: FusionModule):
         super().__init__()
@@ -99,7 +162,9 @@ class ArogyaDrishtiModel(nn.Module):
         """
         inputs: dict of {encoder_name: pixel_values_tensor}
                 plus optionally 'tabular': tabular_features_tensor
-        Returns: dict of risk scores from fusion module
+
+        Only encoders present in inputs are run — others are zero-masked.
+        Returns: dict of risk scores + 'active_encoders' + 'confidence'
         """
         embeddings = {}
         for name, encoder in self.encoders.items():

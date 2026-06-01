@@ -1,17 +1,17 @@
 """
-ArogyaDrishti — Export trained model to PyTorch Mobile (.ptl) for Android
+ArogyaDrishti -- Export trained model to PyTorch Mobile (.ptl) for Android
 Usage:
   python export/export_tflite.py
 
 Outputs:
-  export/arogyadrishti_fusion.ptl    ← hand to Koppala Pavani (Android)
+  export/arogyadrishti_fusion.ptl    <- hand to Koppala Pavani (Android)
 
 Android placement: app/src/main/assets/arogyadrishti_fusion.ptl
 
 Why PyTorch Mobile instead of TFLite?
   The model uses transformer backbones (BEiT, ViT, Swin, CLIP) whose internal
   attention ops (aten::_native_multi_head_attention) cannot be exported to ONNX.
-  PyTorch Mobile handles ALL native PyTorch ops natively — no conversion needed.
+  PyTorch Mobile handles ALL native PyTorch ops natively -- no conversion needed.
 
 Android dependency to add in build.gradle:
   implementation 'org.pytorch:pytorch_android_lite:2.1.0'
@@ -105,7 +105,7 @@ def load_encoder(name, ckpt_path):
         model = EyeEncoder(num_classes=2)
     elif name == 'tongue':
         from encoders.tongue_encoder import TongueEncoder
-        model = TongueEncoder(num_classes=4)
+        model = TongueEncoder(num_classes=2)
     elif name == 'skin':
         from encoders.skin_encoder import SkinEncoder
         model = SkinEncoder(num_classes=7)
@@ -114,7 +114,7 @@ def load_encoder(name, ckpt_path):
         model = NailEncoder(num_classes=6)
     elif name == 'palm':
         from encoders.palm_encoder import PalmEncoder
-        model = PalmEncoder(num_classes=5)
+        model = PalmEncoder(num_classes=2)
     elif name == 'tabular':
         from encoders.tabular_encoder import TabularEncoder
         model = TabularEncoder()
@@ -127,7 +127,7 @@ def load_encoder(name, ckpt_path):
         model.load_state_dict(state, strict=False)
         print(f"  {name}: loaded from {ckpt_path}")
     else:
-        print(f"  {name}: checkpoint NOT found — using pretrained weights only")
+        print(f"  {name}: checkpoint NOT found -- using pretrained weights only")
 
     model.eval()
     return model
@@ -136,7 +136,7 @@ def load_encoder(name, ckpt_path):
 def main():
     os.makedirs('export', exist_ok=True)
 
-    # ── [1] Load all encoders ─────────────────────────────────────────────────
+    # -- [1] Load all encoders -------------------------------------------------
     print("[1] Loading encoders...")
     encoders = nn.ModuleDict()
     for name, ckpt in ENCODER_CKPTS.items():
@@ -150,7 +150,7 @@ def main():
         print(f"  fusion: loaded from {FUSION_CKPT}")
     fusion.eval()
 
-    # ── [2] Build wrapper + dummy inputs ─────────────────────────────────────
+    # -- [2] Build wrapper + dummy inputs -------------------------------------
     wrapper = ArogyaExportWrapper(encoders=encoders, fusion=fusion)
     wrapper.eval()
 
@@ -168,32 +168,32 @@ def main():
         print(f"    {name}: {score.item():.4f}")
     print("  Forward pass OK.")
 
-# ── [3] TorchScript trace ─────────────────────────────────────────────────
+# -- [3] TorchScript trace -------------------------------------------------
     print("\n[2] Tracing model with torch.jit.trace...")
     print("  (TracerWarnings about control flow are expected and harmless)")
-    print("  (Input size is fixed at 224×224 — this is intentional)")
+    print("  (Input size is fixed at 224x224 -- this is intentional)")
     torch._C._jit_clear_class_registry()
     torch._C._jit_set_profiling_executor(False)
     with torch.no_grad():
-        traced = torch.jit.trace(wrapper, dummy, strict=False, check_trace=False)  # ← add check_trace=False
+        traced = torch.jit.trace(wrapper, dummy, strict=False, check_trace=False)  # <- add check_trace=False
     traced = torch.jit.freeze(traced)
     print("  Tracing complete.")
 
-    # Verify traced model output matches original  ← moved to AFTER trace
+    # Verify traced model output matches original  <- moved to AFTER trace
     with torch.no_grad():
         out_traced = traced(*dummy)
     max_diff = max(
         abs(o.item() - ot.item())
         for o, ot in zip(out, out_traced)
     )
-    print(f"  Max output diff (original vs traced): {max_diff:.2e}  ✓")
+    print(f"  Max output diff (original vs traced): {max_diff:.2e}  OK")
 
-    # Save plain TorchScript (.pt) — usable for testing
+    # Save plain TorchScript (.pt) -- usable for testing
     torch.jit.save(traced, PT_PATH)
     size_pt = os.path.getsize(PT_PATH) / 1e6
     print(f"\n  TorchScript saved: {PT_PATH} ({size_pt:.1f} MB)")
 
-    # ── [4] Optimize for mobile (.ptl) ───────────────────────────────────────
+    # -- [4] Optimize for mobile (.ptl) ---------------------------------------
     print("\n[3] Optimizing for mobile...")
     try:
         from torch.utils.mobile_optimizer import optimize_for_mobile
@@ -208,9 +208,9 @@ def main():
         size_ptl = os.path.getsize(PTL_PATH) / 1e6
         print(f"  Fallback .ptl saved: {PTL_PATH} ({size_ptl:.1f} MB)")
 
-    # ── Done ──────────────────────────────────────────────────────────────────
+    # -- Done ------------------------------------------------------------------
     print("\n" + "="*60)
-    print("  PART A COMPLETE — MODEL EXPORTED")
+    print("  PART A COMPLETE -- MODEL EXPORTED")
     print("="*60)
     print(f"\n  Model file: {PTL_PATH}")
     print(f"  Size      : {size_ptl:.1f} MB")
