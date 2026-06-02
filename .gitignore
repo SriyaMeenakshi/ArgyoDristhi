@@ -64,19 +64,6 @@ android/app/src/main/assets/*.pt
 .DS_Store
 Thumbs.db
 # Android-specific
-.gradle/
-.idea/
-build/
-*.apk
-*.ap_
-*.dex
-*.class
-bin/
-gen/
-local.properties
-.DS_Store
-captures/
-.externalNativeBuild
 
 # Python/ML files
 __pycache__/
