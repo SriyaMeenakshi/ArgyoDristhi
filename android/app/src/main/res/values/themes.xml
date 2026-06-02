@@ -3,7 +3,7 @@
     <style name="Theme.ArogyaDrishti" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
-        <item name="colorAccent">@color/primary_light</item>
+        <item name="colorAccent">@color/warm_tan</item>
         <item name="android:windowBackground">@color/background</item>
         <item name="android:statusBarColor">@color/primary_dark</item>
     </style>

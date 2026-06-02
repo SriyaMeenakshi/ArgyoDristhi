@@ -41,94 +41,103 @@
                 android:inputType="number" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Sex + Pregnant row -->
+        <!-- Extra fields for Full Screening -->
         <LinearLayout
+            android:id="@+id/llFullScreeningFields"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="12dp">
+            android:orientation="vertical">
 
+            <!-- Sex + Pregnant row -->
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:layout_marginEnd="8dp">
-                <TextView style="@style/FieldLabel" android:text="Sex" />
-                <Spinner
-                    android:id="@+id/spinnerSex"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:entries="@array/sex_options"
-                    android:background="@drawable/spinner_bg" />
-            </LinearLayout>
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-                <TextView style="@style/FieldLabel" android:text="Pregnant?" />
-                <Spinner
-                    android:id="@+id/spinnerPregnant"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:entries="@array/yes_no_options"
-                    android:background="@drawable/spinner_bg" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <!-- ABHA ID with barcode scan button -->
-        <TextView style="@style/FieldLabel" android:text="ABHA Health ID (optional)" />
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="20dp">
-
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="8dp">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etAbhaId"
-                    android:layout_width="match_parent"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:hint="XX-XXXX-XXXX-XXXX"
-                    android:inputType="text" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginEnd="8dp">
+                    <TextView style="@style/FieldLabel" android:text="Sex" />
+                    <Spinner
+                        android:id="@+id/spinnerSex"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:entries="@array/sex_options"
+                        android:background="@drawable/spinner_bg" />
+                </LinearLayout>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnScanAbha"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView style="@style/FieldLabel" android:text="Pregnant?" />
+                    <Spinner
+                        android:id="@+id/spinnerPregnant"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:entries="@array/yes_no_options"
+                        android:background="@drawable/spinner_bg" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- ABHA ID with barcode scan button -->
+            <TextView style="@style/FieldLabel" android:text="ABHA Health ID (optional)" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="20dp">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etAbhaId"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="XX-XXXX-XXXX-XXXX"
+                        android:inputType="text" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnScanAbha"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:text="Scan"
+                    android:textSize="13sp"
+                    app:strokeColor="@color/primary"
+                    app:cornerRadius="8dp" />
+            </LinearLayout>
+
+            <!-- Symptoms checklist -->
+            <TextView
+                android:id="@+id/tvSymptomsLabel"
                 android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:text="Scan"
-                android:textSize="13sp"
-                app:strokeColor="@color/primary"
-                app:cornerRadius="8dp" />
+                android:layout_height="wrap_content"
+                android:text="SYMPTOMS REPORTED (TAP TO SELECT)"
+                android:textSize="11sp"
+                android:textColor="@color/text_secondary"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="8dp" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupSymptoms"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:chipSpacingHorizontal="6dp"
+                app:chipSpacingVertical="6dp"
+                android:layout_marginBottom="24dp" />
         </LinearLayout>
-
-        <!-- Symptoms checklist -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="SYMPTOMS REPORTED (TAP TO SELECT)"
-            android:textSize="11sp"
-            android:textColor="@color/text_secondary"
-            android:letterSpacing="0.08"
-            android:layout_marginBottom="8dp" />
-
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/chipGroupSymptoms"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:chipSpacingHorizontal="6dp"
-            app:chipSpacingVertical="6dp"
-            android:layout_marginBottom="24dp" />
 
         <!-- Next button -->
         <com.google.android.material.button.MaterialButton

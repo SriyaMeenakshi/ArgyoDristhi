@@ -51,16 +51,13 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Row 2: Skin · Hand (nail+palm) — centred with side spacers -->
+    <!-- Row 2: Skin · Palm · Nail -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:paddingHorizontal="12dp"
         android:layout_marginBottom="8dp">
-
-        <!-- Left spacer (half tile width) -->
-        <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="0.5" />
 
         <LinearLayout android:id="@+id/tileSkin" style="@style/ModalityTile">
             <ImageView android:layout_width="28dp" android:layout_height="28dp"
@@ -69,18 +66,19 @@
                 android:text="Skin" android:textSize="11sp" android:textColor="@color/text_primary" />
         </LinearLayout>
 
-        <!-- Hand tile with "Nail + Palm" subtitle -->
-        <LinearLayout android:id="@+id/tileHand" style="@style/ModalityTile">
+        <LinearLayout android:id="@+id/tilePalm" style="@style/ModalityTile">
             <ImageView android:layout_width="28dp" android:layout_height="28dp"
                 android:src="@drawable/ic_hand" android:tint="@color/primary" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Hand" android:textSize="11sp" android:textColor="@color/text_primary" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Nail + Palm" android:textSize="9sp" android:textColor="@color/text_secondary" />
+                android:text="Palm" android:textSize="11sp" android:textColor="@color/text_primary" />
         </LinearLayout>
 
-        <!-- Right spacer -->
-        <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="0.5" />
+        <LinearLayout android:id="@+id/tileNail" style="@style/ModalityTile">
+            <ImageView android:layout_width="28dp" android:layout_height="28dp"
+                android:src="@drawable/ic_hand" android:tint="@color/primary" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Nail" android:textSize="11sp" android:textColor="@color/text_primary" />
+        </LinearLayout>
     </LinearLayout>
 
     <!-- Current modality label -->

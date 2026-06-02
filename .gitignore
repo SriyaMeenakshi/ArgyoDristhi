@@ -63,3 +63,48 @@ android/app/src/main/assets/*.pt
 *.swp
 .DS_Store
 Thumbs.db
+# Android-specific
+.gradle/
+.idea/
+build/
+*.apk
+*.ap_
+*.dex
+*.class
+bin/
+gen/
+local.properties
+.DS_Store
+captures/
+.externalNativeBuild
+
+# Python/ML files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+*.egg-info/
+dist/
+
+# IDE
+.vscode/
+*.swp
+*.swo
+*~
+
+# Model files (optional - include if your models are small)
+# *.pt
+# *.pth
+# *.ptl
+
+# Node modules (if using React Native)
+node_modules/
+npm-debug.log
+
+# Secrets
+.env
+*.key
+*.jks

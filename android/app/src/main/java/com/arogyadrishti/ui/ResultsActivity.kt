@@ -36,9 +36,14 @@ class ResultsActivity : AppCompatActivity() {
 
         val patientId   = intent.getLongExtra(PatientRegistrationActivity.EXTRA_PATIENT_ID, -1)
         val patientName = intent.getStringExtra(PatientRegistrationActivity.EXTRA_PATIENT_NAME) ?: ""
+        val age         = intent.getIntExtra(PatientRegistrationActivity.EXTRA_AGE, 0)
+        val screeningType = intent.getStringExtra("SCREENING_TYPE") ?: "FULL"
         val screeningId = intent.getLongExtra(EXTRA_SCREENING_ID, -1)
 
-        if (patientName.isNotEmpty()) binding.tvPatientName.text = patientName
+        if (patientName.isNotEmpty()) {
+            binding.tvPatientName.text = patientName
+            binding.tvPatientDetails.text = "Age: $age · ${screeningType.capitalize()} Screening"
+        }
 
         renderRiskCards()
         renderSummaryBadge()
@@ -61,10 +66,13 @@ class ResultsActivity : AppCompatActivity() {
         }
 
         binding.btnScreenNext.setOnClickListener {
-            // Go back to home, clearing this stack
-            val intent = Intent(this, HomeActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            startActivity(intent)
+            startActivity(
+                Intent(this, SaveConfirmationActivity::class.java).apply {
+                    putExtra(PatientRegistrationActivity.EXTRA_PATIENT_NAME, patientName)
+                    putExtra(PatientRegistrationActivity.EXTRA_AGE, age)
+                    putExtra("SCREENING_TYPE", screeningType)
+                }
+            )
         }
     }
 

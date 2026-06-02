@@ -1,26 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Brand palette (matches prototype screenshots) -->
-    <color name="primary">#1B6B5C</color>
-    <color name="primary_dark">#134F44</color>
-    <color name="primary_light">#2E8B77</color>
+    <!-- Primary palette -->
+    <color name="primary">#5D768B</color>
+    <color name="primary_dark">#4A5E6F</color>
+    <color name="primary_light">#7B94A6</color>
+
+    <color name="warm_tan">#C8B39B</color>
+    <color name="light_cream">#E3C9A4</color>
+    <color name="very_light_cream">#F2D9C7</color>
 
     <!-- Backgrounds -->
-    <color name="background">#F4F6F5</color>
-    <color name="surface">#FFFFFF</color>
+    <color name="background">#F2D9C7</color>
+    <color name="surface">#E3C9A4</color>
 
     <!-- Text -->
     <color name="text_primary">#1A1A1A</color>
-    <color name="text_secondary">#6B7B74</color>
+    <color name="text_secondary">#5D768B</color>
     <color name="white">#FFFFFF</color>
     <color name="white_70">#B3FFFFFF</color>
 
     <!-- Risk levels -->
-    <color name="risk_red">#D32F2F</color>
-    <color name="risk_yellow">#E65100</color>
-    <color name="risk_green">#2E7D32</color>
+    <color name="risk_red">#E74C3C</color>
+    <color name="risk_yellow">#F39C12</color>
+    <color name="risk_green">#27AE60</color>
 
     <!-- Status indicator dots -->
-    <color name="dot_online">#4CAF50</color>
-    <color name="dot_offline">#9E9E9E</color>
+    <color name="dot_online">#27AE60</color>
+    <color name="dot_offline">#95A5A6</color>
 </resources>

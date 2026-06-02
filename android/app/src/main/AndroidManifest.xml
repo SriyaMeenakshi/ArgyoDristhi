@@ -45,6 +45,11 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
+            android:name=".ui.ScreeningTypeSelectionActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <activity
             android:name=".ui.PhotoCaptureActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
@@ -56,6 +61,11 @@
 
         <activity
             android:name=".ui.ResultsActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".ui.SaveConfirmationActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 

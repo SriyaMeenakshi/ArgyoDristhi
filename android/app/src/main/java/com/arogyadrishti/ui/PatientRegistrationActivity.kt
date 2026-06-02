@@ -31,17 +31,28 @@ class PatientRegistrationActivity : AppCompatActivity() {
         if (result.contents != null) binding.etAbhaId.setText(result.contents)
     }
 
+    private var screeningType: String? = null
+    private var quickType: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityPatientRegistrationBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        screeningType = intent.getStringExtra("SCREENING_TYPE")
+        quickType = intent.getStringExtra("QUICK_TYPE")
+
         supportActionBar?.apply {
-            title = "Step 1 of 4 — Patient Registration"
+            title = if (screeningType == "QUICK") "Quick Screening - $quickType" else "Full Screening"
+            subtitle = "Step 1 - Patient Registration"
             setDisplayHomeAsUpEnabled(true)
         }
 
-        setupSymptomChips()
+        if (screeningType == "QUICK") {
+            binding.llFullScreeningFields.visibility = android.view.View.GONE
+        } else {
+            setupSymptomChips()
+        }
 
         binding.btnScanAbha.setOnClickListener {
             barcodeLauncher.launch(ScanOptions().apply {
@@ -74,15 +85,26 @@ class PatientRegistrationActivity : AppCompatActivity() {
     private fun validateAndProceed() {
         val name       = binding.etName.text.toString().trim()
         val ageStr     = binding.etAge.text.toString().trim()
-        val sex        = when (binding.spinnerSex.selectedItemPosition) {
-            0 -> "Female"; 1 -> "Male"; else -> "Other"
-        }
-        val abhaId     = binding.etAbhaId.text.toString().trim()
-        val isPregnant = binding.spinnerPregnant.selectedItem.toString() == "Yes"
 
         if (name.isEmpty()) { binding.etName.error = "Name is required"; return }
         val age = ageStr.toIntOrNull()
         if (age == null || age < 1 || age > 120) { binding.etAge.error = "Enter a valid age"; return }
+
+        val sex: String
+        val abhaId: String
+        val isPregnant: Boolean
+
+        if (screeningType == "QUICK") {
+            sex = "Not Specified"
+            abhaId = ""
+            isPregnant = false
+        } else {
+            sex = when (binding.spinnerSex.selectedItemPosition) {
+                0 -> "Female"; 1 -> "Male"; else -> "Other"
+            }
+            abhaId = binding.etAbhaId.text.toString().trim()
+            isPregnant = binding.spinnerPregnant.selectedItem.toString() == "Yes"
+        }
 
         binding.btnNext.isEnabled = false
 
@@ -134,6 +156,8 @@ class PatientRegistrationActivity : AppCompatActivity() {
                     putExtra(EXTRA_AGE,          age)
                     putExtra(EXTRA_IS_PREGNANT,  isPregnant)
                     putStringArrayListExtra(EXTRA_SYMPTOMS, ArrayList(selectedSymptoms))
+                    putExtra("SCREENING_TYPE", screeningType)
+                    putExtra("QUICK_TYPE", quickType)
                 }
             )
         }

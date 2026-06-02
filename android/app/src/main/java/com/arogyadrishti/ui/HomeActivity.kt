@@ -58,8 +58,15 @@ class HomeActivity : AppCompatActivity() {
             }
         }
 
-        binding.btnNewScreening.setOnClickListener {
-            startActivity(Intent(this, PatientRegistrationActivity::class.java))
+        binding.btnFullScreening.setOnClickListener {
+            val intent = Intent(this, PatientRegistrationActivity::class.java)
+            intent.putExtra("SCREENING_TYPE", "FULL")
+            startActivity(intent)
+        }
+
+        binding.btnQuickScreening.setOnClickListener {
+            val intent = Intent(this, ScreeningTypeSelectionActivity::class.java)
+            startActivity(intent)
         }
     }
 }

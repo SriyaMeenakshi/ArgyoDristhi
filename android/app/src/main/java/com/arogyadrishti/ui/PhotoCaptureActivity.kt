@@ -35,6 +35,9 @@ class PhotoCaptureActivity : AppCompatActivity() {
     private lateinit var cameraExecutor: ExecutorService
     private var imageCapture: ImageCapture? = null
 
+    private var screeningType: String? = null
+    private var quickType: String? = null
+
     private val captured = mutableMapOf<Modality, File>()
     private var currentModality: Modality = Modality.FACE
 
@@ -43,7 +46,8 @@ class PhotoCaptureActivity : AppCompatActivity() {
         EYE   ("Eye",    "Pull lower lid slightly"),
         TONGUE("Tongue", "Extend tongue flat"),
         SKIN  ("Skin",   "Hold 10 cm from skin"),
-        HAND  ("Hand",   "Show all nails, dorsal side up")
+        PALM  ("Palm",   "Flat palm, fingers spread"),
+        NAIL  ("Nail",   "Nails facing camera")
     }
 
     private val cameraPermission = registerForActivityResult(
@@ -58,7 +62,10 @@ class PhotoCaptureActivity : AppCompatActivity() {
         binding = ActivityPhotoCaptureBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        supportActionBar?.title = "Step 2 of 4 — Capture Photos"
+        screeningType = intent.getStringExtra("SCREENING_TYPE")
+        quickType = intent.getStringExtra("QUICK_TYPE")
+
+        supportActionBar?.title = if (screeningType == "QUICK") "Quick Screening" else "Full Screening"
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -74,22 +81,31 @@ class PhotoCaptureActivity : AppCompatActivity() {
         binding.btnAnalyse.alpha = 0.4f
         binding.btnAnalyse.setOnClickListener {
             if (allCaptured()) launchProcessing()
-            else Toast.makeText(this, "Capture all 5 photos first", Toast.LENGTH_SHORT).show()
+            else Toast.makeText(this, "Complete all captures first", Toast.LENGTH_SHORT).show()
         }
 
-        selectModality(Modality.FACE)
+        if (screeningType == "QUICK") {
+            val modality = Modality.values().find { it.label == quickType } ?: Modality.FACE
+            selectModality(modality)
+            // Hide all tiles in Quick Screening
+            binding.tileFace.visibility = android.view.View.GONE
+            binding.tileEye.visibility = android.view.View.GONE
+            binding.tileTongue.visibility = android.view.View.GONE
+            binding.tileSkin.visibility = android.view.View.GONE
+            binding.tilePalm.visibility = android.view.View.GONE
+            binding.tileNail.visibility = android.view.View.GONE
+        } else {
+            selectModality(Modality.FACE)
+        }
     }
 
     private fun setupModalityTiles() {
-        mapOf(
-            Modality.FACE   to binding.tileFace,
-            Modality.EYE    to binding.tileEye,
-            Modality.TONGUE to binding.tileTongue,
-            Modality.SKIN   to binding.tileSkin,
-            Modality.HAND   to binding.tileHand
-        ).forEach { (modality, tile) ->
-            tile.setOnClickListener { selectModality(modality) }
-        }
+        binding.tileFace.setOnClickListener { selectModality(Modality.FACE) }
+        binding.tileEye.setOnClickListener { selectModality(Modality.EYE) }
+        binding.tileTongue.setOnClickListener { selectModality(Modality.TONGUE) }
+        binding.tileSkin.setOnClickListener { selectModality(Modality.SKIN) }
+        binding.tilePalm.setOnClickListener { selectModality(Modality.PALM) }
+        binding.tileNail.setOnClickListener { selectModality(Modality.NAIL) }
     }
 
     private fun selectModality(modality: Modality) {
@@ -125,7 +141,7 @@ class PhotoCaptureActivity : AppCompatActivity() {
                                 acceptPhoto(file)
                             }
                         }
-                        Modality.HAND -> ImageQualityChecker.checkHandPresent(bitmap) { handOk, msg ->
+                        Modality.PALM, Modality.NAIL -> ImageQualityChecker.checkHandPresent(bitmap) { handOk, msg ->
                             if (!handOk) {
                                 Toast.makeText(this@PhotoCaptureActivity, msg, Toast.LENGTH_LONG).show()
                             } else {
@@ -146,11 +162,16 @@ class PhotoCaptureActivity : AppCompatActivity() {
 
     private fun acceptPhoto(file: File) {
         captured[currentModality] = file
-        markTileDone(currentModality)
-        advanceToNextModality()
+        if (screeningType != "QUICK") {
+            markTileDone(currentModality)
+            advanceToNextModality()
+        }
         if (allCaptured()) {
             binding.btnAnalyse.isEnabled = true
             binding.btnAnalyse.alpha = 1f
+            if (screeningType == "QUICK") {
+                launchProcessing()
+            }
         }
     }
 
@@ -181,7 +202,8 @@ class PhotoCaptureActivity : AppCompatActivity() {
             Modality.EYE    -> binding.tileEye
             Modality.TONGUE -> binding.tileTongue
             Modality.SKIN   -> binding.tileSkin
-            Modality.HAND   -> binding.tileHand
+            Modality.PALM   -> binding.tilePalm
+            Modality.NAIL   -> binding.tileNail
         }
         tile.setBackgroundResource(com.arogyadrishti.R.drawable.tile_done)
     }
@@ -190,15 +212,49 @@ class PhotoCaptureActivity : AppCompatActivity() {
         Modality.values().firstOrNull { it !in captured }?.let { selectModality(it) }
     }
 
-    private fun allCaptured() = Modality.values().all { it in captured }
+    private fun allCaptured(): Boolean {
+        return if (screeningType == "QUICK") {
+            captured.containsKey(currentModality)
+        } else {
+            Modality.values().all { it in captured }
+        }
+    }
 
     private fun launchProcessing() {
         val intent = Intent(this, ProcessingActivity::class.java).apply {
-            putExtra(EXTRA_FACE_PATH,   captured[Modality.FACE]!!.absolutePath)
-            putExtra(EXTRA_EYE_PATH,    captured[Modality.EYE]!!.absolutePath)
-            putExtra(EXTRA_TONGUE_PATH, captured[Modality.TONGUE]!!.absolutePath)
-            putExtra(EXTRA_SKIN_PATH,   captured[Modality.SKIN]!!.absolutePath)
-            putExtra(EXTRA_HAND_PATH,   captured[Modality.HAND]!!.absolutePath)
+            putExtra("SCREENING_TYPE", screeningType)
+            putExtra("QUICK_TYPE", quickType)
+            
+            if (screeningType == "QUICK") {
+                val path = captured[currentModality]!!.absolutePath
+                putExtra(EXTRA_FACE_PATH,   path)
+                putExtra(EXTRA_EYE_PATH,    path)
+                putExtra(EXTRA_TONGUE_PATH, path)
+                putExtra(EXTRA_SKIN_PATH,   path)
+                putExtra(EXTRA_HAND_PATH,   path)
+            } else {
+                putExtra(EXTRA_FACE_PATH,   captured[Modality.FACE]!!.absolutePath)
+                putExtra(EXTRA_EYE_PATH,    captured[Modality.EYE]!!.absolutePath)
+                putExtra(EXTRA_TONGUE_PATH, captured[Modality.TONGUE]!!.absolutePath)
+                putExtra(EXTRA_SKIN_PATH,   captured[Modality.SKIN]!!.absolutePath)
+                // Combine Palm and Nail for HAND_PATH if we have both, otherwise use what we have
+                val handPath = captured[Modality.PALM]?.absolutePath ?: captured[Modality.NAIL]?.absolutePath
+                putExtra(EXTRA_HAND_PATH,   handPath)
+            }
+            
+            putExtra(PatientRegistrationActivity.EXTRA_PATIENT_ID,
+                this@PhotoCaptureActivity.intent.getLongExtra(PatientRegistrationActivity.EXTRA_PATIENT_ID, -1))
+            putExtra(PatientRegistrationActivity.EXTRA_PATIENT_NAME,
+                this@PhotoCaptureActivity.intent.getStringExtra(PatientRegistrationActivity.EXTRA_PATIENT_NAME))
+            putExtra(PatientRegistrationActivity.EXTRA_AGE,
+                this@PhotoCaptureActivity.intent.getIntExtra(PatientRegistrationActivity.EXTRA_AGE, 0))
+            putExtra(PatientRegistrationActivity.EXTRA_IS_PREGNANT,
+                this@PhotoCaptureActivity.intent.getBooleanExtra(PatientRegistrationActivity.EXTRA_IS_PREGNANT, false))
+            putStringArrayListExtra(PatientRegistrationActivity.EXTRA_SYMPTOMS,
+                this@PhotoCaptureActivity.intent.getStringArrayListExtra(PatientRegistrationActivity.EXTRA_SYMPTOMS))
+        }
+        startActivity(intent)
+    }
             putExtra(PatientRegistrationActivity.EXTRA_PATIENT_ID,
                 this@PhotoCaptureActivity.intent.getLongExtra(PatientRegistrationActivity.EXTRA_PATIENT_ID, -1))
             putExtra(PatientRegistrationActivity.EXTRA_PATIENT_NAME,

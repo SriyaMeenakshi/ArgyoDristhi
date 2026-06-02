@@ -130,6 +130,10 @@ class ProcessingActivity : AppCompatActivity() {
                             putExtra(PatientRegistrationActivity.EXTRA_PATIENT_ID, patientId)
                             putExtra(PatientRegistrationActivity.EXTRA_PATIENT_NAME,
                                 this@ProcessingActivity.intent.getStringExtra(PatientRegistrationActivity.EXTRA_PATIENT_NAME))
+                            putExtra(PatientRegistrationActivity.EXTRA_AGE,
+                                this@ProcessingActivity.intent.getIntExtra(PatientRegistrationActivity.EXTRA_AGE, 0))
+                            putExtra("SCREENING_TYPE",
+                                this@ProcessingActivity.intent.getStringExtra("SCREENING_TYPE"))
                         }
                     )
                     finish()
