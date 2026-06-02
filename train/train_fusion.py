@@ -152,15 +152,17 @@ class FusionDataset(Dataset):
         return self.n
 
     def __getitem__(self, idx):
-        # For each encoder, randomly pick one embedding from its pool
-        sample = {}
+        # Anchor: tabular embedding + its real paired label
+        tab_idx = idx % self.n_label
+        sample = {'tabular': self.embeddings['tabular'][tab_idx]}
+        label  = self.labels[tab_idx]
+        # Context: randomly sample image embeddings per encoder
         for name, embs in self.embeddings.items():
+            if name == 'tabular':
+                continue
             i = np.random.randint(0, self.sizes[name])
             sample[name] = embs[i]
-
-        # Label from tabular pool (random)
-        label_idx = np.random.randint(0, self.n_label)
-        return sample, self.labels[label_idx]
+        return sample, label
 
 
 def collate_fusion(batch):
@@ -182,7 +184,7 @@ def train_epoch(fusion, loader, optimizer, scaler, criterion):
         labels = labels.to(DEVICE)
         optimizer.zero_grad()
         risks = fusion(embeddings)
-        pred = torch.stack(list(risks.values()), dim=1)
+        pred = torch.stack([v for v in risks.values() if isinstance(v, torch.Tensor)], dim=1)
         pred = pred.float().clamp(1e-7, 1 - 1e-7)
         loss = criterion(pred, labels.float())
         loss.backward()
@@ -200,7 +202,7 @@ def eval_epoch(fusion, loader, criterion):
             embeddings = {k: v.to(DEVICE) for k, v in embeddings.items()}
             labels = labels.to(DEVICE)
             risks = fusion(embeddings)
-            pred = torch.stack(list(risks.values()), dim=1)
+            pred = torch.stack([v for v in risks.values() if isinstance(v, torch.Tensor)], dim=1)
             pred = pred.float().clamp(1e-7, 1 - 1e-7)
             loss = criterion(pred, labels.float())
             total_loss += loss.item()
@@ -211,9 +213,10 @@ def eval_epoch(fusion, loader, criterion):
     all_labels = np.vstack(all_labels)
     from sklearn.metrics import roc_auc_score
     aucs = []
+    bin_labels = (all_labels >= 0.5).astype(int)
     for i in range(all_labels.shape[1]):
-        if len(np.unique(all_labels[:, i])) > 1:
-            aucs.append(roc_auc_score(all_labels[:, i], all_preds[:, i]))
+        if len(np.unique(bin_labels[:, i])) > 1:
+            aucs.append(roc_auc_score(bin_labels[:, i], all_preds[:, i]))
     mean_auc = float(np.mean(aucs)) if aucs else 0.0
     return total_loss / len(loader), mean_auc
 
@@ -265,9 +268,18 @@ def main():
         tab_labels = np.random.randint(0, 2, (500, 7)).astype(np.float32)
         print("  tabular: No data — using random embeddings")
 
+    
     # Build fusion module
     encoder_dims = {name: all_embs[name].shape[1] for name in all_embs}
     fusion = FusionModule(encoder_dims=encoder_dims).to(DEVICE)
+
+
+    # Blend tabular labels (60%) with encoder-predicted labels (40%)
+    encoder_labels = extract_encoder_risk_labels(encoders, all_embs)
+    n_tab = len(tab_labels)
+    encoder_labels_trimmed = encoder_labels[:n_tab]
+    tab_labels = 0.6 * tab_labels + 0.4 * encoder_labels_trimmed
+    print("  Labels blended: 60% tabular + 40% encoder predictions")
 
     print(f"\n[2] Building fusion datasets...")
     train_ds = FusionDataset(all_embs, tab_labels, n_samples=args.n_train)
@@ -331,5 +343,69 @@ def main():
         wandb.finish()
 
 
+
+
+@torch.no_grad()
+def extract_encoder_risk_labels(encoders: dict, all_embs: dict) -> np.ndarray:
+    """
+    Derive risk labels from encoder classifier predictions.
+    Maps each encoder output class -> risk head probability.
+    This makes fusion learn from actual image content, not just tabular.
+    """
+    n = max(len(v) for v in all_embs.values())
+    labels = np.zeros((n, 7), dtype=np.float32)  # 7 risk heads
+
+    # Nail: clubbing->cardiovascular, cyanosis->cardiovascular, 
+    #        pitting->dermatological, ALM->dermatological
+    if 'nail' in all_embs:
+        nail_embs = torch.tensor(all_embs['nail']).to(DEVICE)
+        nail_enc = encoders['nail']
+        for i in range(0, len(nail_embs), 32):
+            batch = nail_embs[i:i+32]
+            logits = nail_enc.classifier(batch)
+            probs = torch.softmax(logits, dim=1).cpu().numpy()
+            # class 1=clubbing, 2=cyanosis -> cardiovascular
+            labels[i:i+len(probs), 4] = probs[:, 1] + probs[:, 2]
+            # class 4=pitting, 5=ALM -> dermatological  
+            labels[i:i+len(probs), 5] = probs[:, 4] + probs[:, 5]
+            # class 0=healthy -> reduce all risks
+            labels[i:i+len(probs), 0] *= (1 - probs[:, 0] * 0.5)
+
+    # Face: pallor->hematological, genetic->nutritional
+    if 'face' in all_embs:
+        face_embs = torch.tensor(all_embs['face']).to(DEVICE)
+        face_enc = encoders['face']
+        idx = min(len(face_embs), n)
+        for i in range(0, idx, 32):
+            batch = face_embs[i:i+32]
+            logits = face_enc.classifier(batch)
+            probs = torch.softmax(logits, dim=1).cpu().numpy()
+            # class 1=pallor -> hematological
+            labels[i:i+len(probs), 0] = np.maximum(
+                labels[i:i+len(probs), 0], probs[:, 1])
+            # class 3=genetic -> nutritional
+            labels[i:i+len(probs), 6] = np.maximum(
+                labels[i:i+len(probs), 6], probs[:, 3])
+
+    # Palm: pallor->hematological, erythema->hepatic, jaundice->hepatic
+    if 'palm' in all_embs:
+        palm_embs = torch.tensor(all_embs['palm']).to(DEVICE)
+        palm_enc = encoders['palm']
+        idx = min(len(palm_embs), n)
+        for i in range(0, idx, 32):
+            batch = palm_embs[i:i+32]
+            logits = palm_enc.classifier(batch)
+            probs = torch.softmax(logits, dim=1).cpu().numpy()
+            # class 1=erythema, 3=jaundice -> hepatic
+            labels[i:i+len(probs), 3] = np.maximum(
+                labels[i:i+len(probs), 3], probs[:, 1] + probs[:, 3])
+            # class 2=pallor -> hematological
+            labels[i:i+len(probs), 0] = np.maximum(
+                labels[i:i+len(probs), 0], probs[:, 2])
+
+    return np.clip(labels, 0, 1)
+    return np.clip(labels, 0, 1)
+
 if __name__ == '__main__':
     main()
+
